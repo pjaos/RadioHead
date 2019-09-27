@@ -142,8 +142,10 @@ public:
     /// Base does nothing
     /// Might be overridden in subclass
     /// \param[in] interruptNumber The number of the interrupt
-    virtual void usingInterrupt(uint8_t interruptNumber){}
-    
+    virtual void usingInterrupt(uint8_t interruptNumber){
+      (void)interruptNumber;
+    }
+
 protected:
     
     /// The configure SPI Bus frequency, one of RHGenericSPI::Frequency

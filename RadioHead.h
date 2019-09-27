@@ -1192,11 +1192,12 @@ these examples and explanations and extend them to suit your needs.
 #define RH_PLATFORM_CHIPKIT_CORE     13
 #define RH_PLATFORM_ESP32            14						   
 #define RH_PLATFORM_NRF52            15
+#define RH_PLATFORM_MONGOOSE_OS      16
 
 ////////////////////////////////////////////////////
 // Select platform automatically, if possible
 #ifndef RH_PLATFORM
- #if (MPIDE>=150 && defined(ARDUINO))
+ #if (defined(MPIDE) && MPIDE>=150 && defined(ARDUINO))
   // Using ChipKIT Core on Arduino IDE
   #define RH_PLATFORM RH_PLATFORM_CHIPKIT_CORE
  #elif defined(MPIDE)
@@ -1210,6 +1211,8 @@ these examples and explanations and extend them to suit your needs.
   #define RH_PLATFORM RH_PLATFORM_ESP8266
  #elif defined(ESP32)
   #define RH_PLATFORM RH_PLATFORM_ESP32
+ #elif defined(MGOS)
+  #define RH_PLATFORM RH_PLATFORM_MONGOOSE_OS
  #elif defined(ARDUINO)
   #define RH_PLATFORM RH_PLATFORM_ARDUINO
  #elif defined(__MSP430G2452__) || defined(__MSP430G2553__)
@@ -1269,6 +1272,31 @@ these examples and explanations and extend them to suit your needs.
  #define RH_HAVE_HARDWARE_SPI
  #define RH_HAVE_SERIAL
  #define RH_MISSING_SPIUSINGINTERRUPT
+
+ #elif (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS) // Mongoose OS platform
+  #include <mgos.h>
+  #include <mgos_adc.h>
+  #include <mgos_pwm.h>
+  #include <MGOSCompat/HardwareSerial.h>
+  #include <MGOSCompat/HardwareSPI.h>
+  #include <MGOSCompat/MGOS.h>
+  #include <math.h> // We use the floor() math function.
+  #define RH_HAVE_HARDWARE_SPI
+   //If a Radio is connected via a serial port then this defines the serial
+   //port the radio is connected to.
+  #if defined(RH_SERIAL_PORT)
+   #if RH_SERIAL_PORT == 0
+    #define Serial Serial0
+   #elif RH_SERIAL_PORT == 1
+    #define Serial Serial1
+   #elif RH_SERIAL_PORT == 2
+    #define Serial Serial2
+   #endif
+  #else
+   #warning "RH_SERIAL_PORT not defined. Therefore serial port 0 selected"
+   #define Serial Serial0
+  #endif
+  #define RH_HAVE_SERIAL
 
 #elif (RH_PLATFORM == RH_PLATFORM_MSP430) // LaunchPad specific
  #include "legacymsp430.h"
@@ -1402,11 +1430,19 @@ these examples and explanations and extend them to suit your needs.
 // Try to be compatible with systems that support yield() and multitasking
 // instead of spin-loops
 // Recent Arduino IDE or Teensy 3 has yield()
-#if (RH_PLATFORM == RH_PLATFORM_ARDUINO && ARDUINO >= 155 && !defined(RH_PLATFORM_ATTINY)) || (TEENSYDUINO && defined(__MK20DX128__))
+#if (RH_PLATFORM == RH_PLATFORM_ARDUINO && ARDUINO >= 155 && !defined(RH_PLATFORM_ATTINY)) || (defined(TEENSYDUINO) && defined(__MK20DX128__))
  #define YIELD yield();
 #elif (RH_PLATFORM == RH_PLATFORM_ESP8266)
 // ESP8266 also has it
  #define YIELD yield();
+#elif (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
+ //ESP32 and ESP8266 use freertos so we include calls
+ //that we would normall exit a function and return to
+ //the rtos in mgosYield() (E.G flush TX uart buffer
+ extern "C" {
+   void mgosYield(void);
+ }
+ #define YIELD mgosYield()
 #else
  #define YIELD
 #endif
