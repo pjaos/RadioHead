@@ -82,6 +82,7 @@ uint8_t HardwareSPI::transfer2B(uint8_t byte0, uint8_t byte1)
 }
 
 uint8_t HardwareSPI::spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len) {
+    uint8_t status=0;
     if( len+1 <= SPI_RX_BUFFER_SIZE ) {
         txn.fd.len=len+1;
         memset(spiTXBuf, 0, SPI_RX_BUFFER_SIZE);
@@ -93,24 +94,42 @@ uint8_t HardwareSPI::spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len) {
         if( !success ) {
             LOG(LL_INFO, ("%s: Failed SPI transfer()", __FUNCTION__) );
         }
+        if( bitOrder != MSBFIRST ) {
+            uint8_t index=0;
+            for( index=0 ; index<len+1 ; index++) {
+                spiRXBuf[0]=reverseBits(spiRXBuf[0]);
+            }
+        }
         memcpy(dest, spiRXBuf+1, len); //copy all but the status byte to the data read buffer
+        status = spiRXBuf[0]; //return the status byte
     }
     else {
         LOG(LL_INFO, ("%s: RX buffer not large enough (rx buf length = %d bytes message length = %d bytes).", __FUNCTION__, SPI_RX_BUFFER_SIZE, len) );
     }
-    return spiRXBuf[0]; //return the status byte
+    return status;
 }
 
 uint8_t HardwareSPI::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len) {
+    uint8_t status=0;
     txn.fd.len=len+1;
     memcpy(spiTXBuf+1, src, len);
     spiTXBuf[0]=reg;
-    memset(spiRXBuf, 0, SPI_TX_BUFFER_SIZE);
+    if( bitOrder != MSBFIRST ) {
+        uint8_t index=0;
+        for( index=0 ; index<len+1 ; index++) {
+            spiTXBuf[0]=reverseBits(spiTXBuf[0]);
+        }
+    }
+    memset(spiRXBuf, 0, SPI_RX_BUFFER_SIZE);
     bool success = mgos_spi_run_txn( mgos_spi_get_global(), true, &txn);
     if( !success ) {
         LOG(LL_INFO, ("%s: Failed SPI transfer()", __FUNCTION__) );
     }
-    return spiRXBuf[0]; //return the status byte
+    status = spiRXBuf[0];
+    if( bitOrder != MSBFIRST ) {
+        status = reverseBits(status);
+    }
+    return status;
 }
 
 uint8_t HardwareSPI::getCSGpio() {
