@@ -89,6 +89,29 @@ public:
     /// \return The octet read from SPI while the data octet was sent
     virtual uint8_t transfer(uint8_t data) = 0;
 
+#if defined(RH_PLATFORM_MONGOOSE_OS)
+    /// Transfer up to 2 bytes on the SPI interface
+    /// \param[in] byte0 The first byte to be sent on the SPI interface
+    /// \param[in] byte1 The second byte to be sent on the SPI interface
+    /// \return The second byte clocked in as the second byte is sent.
+    virtual uint8_t transfer2B(uint8_t byte0, uint8_t byte1) = 0;
+
+    /// Read a number of bytes on the SPI interface from an NRF device
+    /// \param[in] reg The NRF device register to read
+    /// \param[out] dest The buffer to hold the bytes read
+    /// \param[in] len The number of bytes to read
+    /// \return The NRF status byte
+    virtual uint8_t spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len) = 0;
+
+    /// Wrte a number of bytes on the SPI interface to an NRF device
+    /// \param[in] reg The NRF device register to read
+    /// \param[out] src The buffer to hold the bytes write
+    /// \param[in] len The number of bytes to write
+    /// \return The NRF status byte
+    virtual uint8_t spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len) = 0;
+
+#endif
+
     /// SPI Configuration methods
     /// Enable SPI interrupts (if supported)
     /// This can be used in an SPI slave to indicate when an SPI message has been received

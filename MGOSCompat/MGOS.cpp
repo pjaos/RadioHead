@@ -22,39 +22,43 @@ float pwmDutyCycle = 0.5;
  **/
 void pinMode(uint8_t pin, WiringPinMode mode)
 {
-  if (mode == OUTPUT)
-  {
-    mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_OUTPUT);
-  }
-  else if (mode == OUTPUT_OPEN_DRAIN)
-  {
-      mgos_gpio_set_pull(pin, MGOS_GPIO_PULL_UP);
-      mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_OUTPUT);
-  }
-  else if (mode == INPUT || mode == INPUT_FLOATING )
-  {
-      mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_INPUT);
-  }
-  else if (mode == INPUT_ANALOG)
-  {
-      mgos_adc_enable(pin);
-  }
-  else if (mode == INPUT_PULLUP)
-  {
-      mgos_gpio_set_pull(pin, MGOS_GPIO_PULL_UP);
-      mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_INPUT);
-  }
-  else if (mode == INPUT_PULLDOWN)
-  {
-      mgos_gpio_set_pull(pin, MGOS_GPIO_PULL_DOWN);
-      mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_INPUT);
-  }
-  else if (mode == PWM)
-  {
-      mgos_pwm_set(pin, pwmFreq, pwmDutyCycle);
-  }
-  else if (mode == PWM_OPEN_DRAIN) {
-      mgos_pwm_set(pin, pwmFreq, pwmDutyCycle);
+
+  //SPI CS GPIO controlled by MGOS lib call so don't allow it to be set here
+  if( SPI.getCSGpio() != pin ) {
+      if (mode == OUTPUT)
+      {
+        mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_OUTPUT);
+      }
+      else if (mode == OUTPUT_OPEN_DRAIN)
+      {
+          mgos_gpio_set_pull(pin, MGOS_GPIO_PULL_UP);
+          mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_OUTPUT);
+      }
+      else if (mode == INPUT || mode == INPUT_FLOATING )
+      {
+          mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_INPUT);
+      }
+      else if (mode == INPUT_ANALOG)
+      {
+          mgos_adc_enable(pin);
+      }
+      else if (mode == INPUT_PULLUP)
+      {
+          mgos_gpio_set_pull(pin, MGOS_GPIO_PULL_UP);
+          mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_INPUT);
+      }
+      else if (mode == INPUT_PULLDOWN)
+      {
+          mgos_gpio_set_pull(pin, MGOS_GPIO_PULL_DOWN);
+          mgos_gpio_set_mode(pin, MGOS_GPIO_MODE_INPUT);
+      }
+      else if (mode == PWM)
+      {
+          mgos_pwm_set(pin, pwmFreq, pwmDutyCycle);
+      }
+      else if (mode == PWM_OPEN_DRAIN) {
+          mgos_pwm_set(pin, pwmFreq, pwmDutyCycle);
+      }
   }
 }
 
@@ -65,9 +69,12 @@ void pinMode(uint8_t pin, WiringPinMode mode)
  */
 void digitalWrite(unsigned char pin, unsigned char value)
 {
-    mgos_gpio_write(pin,value);
-}
 
+    //SPI CS GPIO controlled by MGOS lib call so don't allow it to be set here
+    if( SPI.getCSGpio() != pin ) {
+        mgos_gpio_write(pin,value);
+    }
+}
 
 /**
  * @brief Read the state of a GPIO pin.
@@ -76,7 +83,12 @@ void digitalWrite(unsigned char pin, unsigned char value)
  */
 uint8_t digitalRead(uint8_t pin)
 {
-    return (uint8_t)mgos_gpio_read(pin);
+    uint8_t pinState=0;
+    //SPI CS GPIO controlled by MGOS lib call so don't allow it to be set here
+    if( SPI.getCSGpio() != pin ) {
+        pinState = (uint8_t)mgos_gpio_read(pin);
+    }
+    return pinState;
 }
 
 /**

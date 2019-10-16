@@ -16,35 +16,20 @@ HardwareSPI::HardwareSPI(uint32_t spiPortNumber) : spiPortNumber(spiPortNumber)
 
 void HardwareSPI::begin(int frequency, uint32_t bitOrder, uint32_t mode)
 {
-    /*
-    //The following SPI params should be setup in the Mongoose OS mos.yml
-    struct mgos_config_spi bus_cfg = {
-        .unit_no = 3,
-        .miso_gpio = 19,
-        .mosi_gpio = 23,
-        .sclk_gpio = 18,
-        .cs0_gpio = 5,
-        .debug = true,
-    };
-    */
+    //Set the SPI tx/rx buffer pointers.
+    txn.fd.tx_data = spiTXBuf;
+    txn.fd.rx_data = spiRXBuf;
 
-    this->txn.cs = 0; /* Use CS0 line as configured by cs0_gpio */
-    this->txn.mode = mode;
-    this->txn.freq=frequency;
-    this->bitOrder=bitOrder;
+    txn.freq       = frequency;
+    this->bitOrder = bitOrder;
+    txn.mode       = mode;
+    txn.cs         = mgos_sys_config_get_rh_spi_cs();
 }
 
 void HardwareSPI::end(void)
 {
     struct mgos_spi *spi = mgos_spi_get_global();
     mgos_spi_close(spi);
-}
-
-unsigned char reverse(unsigned char b) {
-   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
-   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
-   b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
-   return b;
 }
 
 uint8_t HardwareSPI::reverseBits(uint8_t value)
@@ -57,13 +42,90 @@ uint8_t HardwareSPI::reverseBits(uint8_t value)
 
 uint8_t HardwareSPI::transfer(uint8_t data)
 {
-    bool full_duplex=true;
+    uint8_t status=0;
+    txn.fd.len=1;
+    spiTXBuf[0]=data;
+    if( bitOrder != MSBFIRST ) {
+        spiTXBuf[0]=reverseBits(spiTXBuf[0]);
+    }
+    bool success = mgos_spi_run_txn( mgos_spi_get_global(), true, &txn);
+    if( !success ) {
+        LOG(LL_INFO, ("%s: Failed SPI transfer()", __FUNCTION__) );
+    }
+    status = spiRXBuf[0];
+    if( bitOrder != MSBFIRST ) {
+        status = reverseBits(status);
+    }
+    return status;
+}
 
-    if( this->bitOrder == LSBFIRST ) {
-        data = reverseBits(data);
+uint8_t HardwareSPI::transfer2B(uint8_t byte0, uint8_t byte1)
+{
+    uint8_t status=0;
+    txn.fd.len=2;
+    spiTXBuf[0]=byte0;
+    spiTXBuf[1]=byte1;
+    if( bitOrder != MSBFIRST ) {
+        spiTXBuf[0]=reverseBits(spiTXBuf[0]);
+        spiTXBuf[1]=reverseBits(spiTXBuf[1]);
+    }
+    bool success = mgos_spi_run_txn( mgos_spi_get_global(), true, &txn);
+    if( !success ) {
+        LOG(LL_INFO, ("%s: Failed SPI transfer()", __FUNCTION__) );
     }
 
-    return (uint8_t) mgos_spi_run_txn( mgos_spi_get_global(), full_duplex, &this->txn);
+    status = spiRXBuf[0];
+    if( bitOrder != MSBFIRST ) {
+        status = reverseBits(status);
+    }
+    return status;
+}
+
+uint8_t HardwareSPI::spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len) {
+    if( len+1 <= SPI_RX_BUFFER_SIZE ) {
+        txn.fd.len=len+1;
+        memset(spiTXBuf, 0, SPI_RX_BUFFER_SIZE);
+        spiTXBuf[0]=reg;
+        if( bitOrder != MSBFIRST ) {
+            spiTXBuf[0]=reverseBits(spiTXBuf[0]);
+        }
+        bool success = mgos_spi_run_txn( mgos_spi_get_global(), true, &txn);
+        if( !success ) {
+            LOG(LL_INFO, ("%s: Failed SPI transfer()", __FUNCTION__) );
+        }
+        memcpy(dest, spiRXBuf+1, len); //copy all but the status byte to the data read buffer
+    }
+    else {
+        LOG(LL_INFO, ("%s: RX buffer not large enough (rx buf length = %d bytes message length = %d bytes).", __FUNCTION__, SPI_RX_BUFFER_SIZE, len) );
+    }
+    return spiRXBuf[0]; //return the status byte
+}
+
+uint8_t HardwareSPI::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len) {
+    txn.fd.len=len+1;
+    memcpy(spiTXBuf+1, src, len);
+    spiTXBuf[0]=reg;
+    memset(spiRXBuf, 0, SPI_TX_BUFFER_SIZE);
+    bool success = mgos_spi_run_txn( mgos_spi_get_global(), true, &txn);
+    if( !success ) {
+        LOG(LL_INFO, ("%s: Failed SPI transfer()", __FUNCTION__) );
+    }
+    return spiRXBuf[0]; //return the status byte
+}
+
+uint8_t HardwareSPI::getCSGpio() {
+    uint8_t rhSPICSPin=0;
+
+    if( mgos_sys_config_get_rh_spi_cs() == 0 ) {
+        rhSPICSPin = mgos_sys_config_get_spi_cs0_gpio();
+    }
+    else if ( mgos_sys_config_get_rh_spi_cs() == 1 ) {
+        rhSPICSPin = mgos_sys_config_get_spi_cs1_gpio();
+    }
+    else if ( mgos_sys_config_get_rh_spi_cs() == 2 ) {
+        rhSPICSPin = mgos_sys_config_get_spi_cs2_gpio();
+    }
+    return rhSPICSPin;
 }
 
 #endif

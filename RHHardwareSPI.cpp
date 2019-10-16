@@ -46,6 +46,24 @@ uint8_t RHHardwareSPI::transfer(uint8_t data)
     return SPI.transfer(data);
 }
 
+#if defined(RH_PLATFORM_MONGOOSE_OS)
+uint8_t RHHardwareSPI::transfer2B(uint8_t byte0, uint8_t byte1)
+{
+    return SPI.transfer2B(byte0, byte1);
+}
+
+uint8_t RHHardwareSPI::spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
+{
+    return SPI.spiBurstRead(reg, dest, len);
+}
+
+uint8_t RHHardwareSPI::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len)
+{
+    uint8_t status = SPI.spiBurstWrite(reg, src, len);
+    return status;
+}
+#endif
+
 void RHHardwareSPI::attachInterrupt() 
 {
 #if (RH_PLATFORM == RH_PLATFORM_ARDUINO || RH_PLATFORM == RH_PLATFORM_NRF52)
@@ -415,50 +433,32 @@ void RHHardwareSPI::begin()
       break;
   }
   SPI.begin(divider, bitOrder, dataMode);
-  #elif (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
-    uint8_t dataMode;
-    if (_dataMode == DataMode0)
-    dataMode = SPI_MODE0;
-    else if (_dataMode == DataMode1)
-    dataMode = SPI_MODE1;
-    else if (_dataMode == DataMode2)
-    dataMode = SPI_MODE2;
-    else if (_dataMode == DataMode3)
-    dataMode = SPI_MODE3;
-    else
-    dataMode = SPI_MODE0;
+#elif (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
+    uint8_t dataMode   = SPI_MODE0;
+    uint32_t frequency = 4000000; //!!! ESP32/NRF902 works ok at 4MHz but not at 8MHz SPI clock.
+    uint32_t bitOrder  = MSBFIRST;
 
-    uint32_t bitOrder;
-    if (_bitOrder == BitOrderLSBFirst)
-    bitOrder = LSBFIRST;
-    else
-    bitOrder = MSBFIRST;
-
-    SPIFrequency frequency; // Yes, I know these are not exact equivalents.
-    switch (_frequency)
-    {
-    case Frequency1MHz:
-    default:
-        frequency = SPI_1_3125MHZ;
-        break;
-
-    case Frequency2MHz:
-        frequency = SPI_2_625MHZ;
-        break;
-
-    case Frequency4MHz:
-        frequency = SPI_5_25MHZ;
-        break;
-
-    case Frequency8MHz:
-        frequency = SPI_10_5MHZ;
-        break;
-
-    case Frequency16MHz:
-        frequency = SPI_21_0MHZ;
-        break;
-
+    if (_dataMode == DataMode0) {
+        dataMode = SPI_MODE0;
+    } else if (_dataMode == DataMode1) {
+        dataMode = SPI_MODE1;
+    } else if (_dataMode == DataMode2) {
+        dataMode = SPI_MODE2;
+    } else if (_dataMode == DataMode3) {
+        dataMode = SPI_MODE3;
     }
+
+    if (_bitOrder == BitOrderLSBFirst) {
+        bitOrder = LSBFIRST;
+    }
+
+    if (_frequency == Frequency4MHz)
+        frequency = 4000000;
+    else if (_frequency == Frequency2MHz)
+        frequency = 2000000;
+    else
+        frequency = 1000000;
+
     SPI.begin(frequency, bitOrder, dataMode);
 #else
  #warning RHHardwareSPI does not support this platform yet. Consider adding it and contributing a patch.
