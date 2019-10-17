@@ -29,7 +29,7 @@ public:
     void begin(int frequency, uint32_t bitOrder, uint32_t mode);
     void end(void);
     uint8_t reverseBits(uint8_t value);
-    uint8_t getCSGpio();
+    int8_t getCSGpio();
     uint8_t transfer(uint8_t data);
     uint8_t transfer2B(uint8_t byte0, uint8_t byte1);
     uint8_t spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len);

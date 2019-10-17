@@ -23,7 +23,11 @@ void HardwareSPI::begin(int frequency, uint32_t bitOrder, uint32_t mode)
     txn.freq       = frequency;
     this->bitOrder = bitOrder;
     txn.mode       = mode;
+#ifdef RH_USE_SPI
     txn.cs         = mgos_sys_config_get_rh_spi_cs();
+#else
+    txn.cs         = -1;
+#endif
 }
 
 void HardwareSPI::end(void)
@@ -132,16 +136,16 @@ uint8_t HardwareSPI::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len)
     return status;
 }
 
-uint8_t HardwareSPI::getCSGpio() {
-    uint8_t rhSPICSPin=0;
+int8_t HardwareSPI::getCSGpio() {
+    uint8_t rhSPICSPin=-1;
 
-    if( mgos_sys_config_get_rh_spi_cs() == 0 ) {
+    if( txn.cs == 0 ) {
         rhSPICSPin = mgos_sys_config_get_spi_cs0_gpio();
     }
-    else if ( mgos_sys_config_get_rh_spi_cs() == 1 ) {
+    else if ( txn.cs == 1 ) {
         rhSPICSPin = mgos_sys_config_get_spi_cs1_gpio();
     }
-    else if ( mgos_sys_config_get_rh_spi_cs() == 2 ) {
+    else if ( txn.cs == 2 ) {
         rhSPICSPin = mgos_sys_config_get_spi_cs2_gpio();
     }
     return rhSPICSPin;
