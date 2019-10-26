@@ -121,7 +121,7 @@ uint8_t HardwareSPI::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len)
     if( bitOrder != MSBFIRST ) {
         uint8_t index=0;
         for( index=0 ; index<len+1 ; index++) {
-            spiTXBuf[0]=reverseBits(spiTXBuf[0]);
+            spiTXBuf[index]=reverseBits(spiTXBuf[index]);
         }
     }
     memset(spiRXBuf, 0, SPI_RX_BUFFER_SIZE);
