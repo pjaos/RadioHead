@@ -136,6 +136,7 @@ void attachInterrupt(uint8_t pin, void (*handler)(void), int rh_mode)
         mgos_mode = MGOS_GPIO_INT_EDGE_POS;
     }
     mgos_gpio_set_int_handler((int)pin, mgos_mode, mgos_gpio_int_handler, (void*)handler);
+    mgos_gpio_enable_int(pin);
 }
 
 /**
