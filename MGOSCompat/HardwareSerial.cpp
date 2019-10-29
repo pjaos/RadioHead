@@ -138,27 +138,18 @@ size_t HardwareSerial::write(uint8_t ch)
 
 size_t HardwareSerial::print(char ch)
 {
-#ifndef RH_SERIAL_DISABLE_PRINT
   printf("%c", ch);
-#else
-  (void)ch;
-#endif
   return 0;
 }
 
 size_t HardwareSerial::println(char ch)
 {
-#ifndef RH_SERIAL_DISABLE_PRINT
   printf("%c\n", ch);
-#else
-  (void)ch;
-#endif
   return 0;
 }
 
 size_t HardwareSerial::print(unsigned char ch, int base)
 {
-#ifndef RH_SERIAL_DISABLE_PRINT
   if( base == DEC ) {
       printf("%d", ch);
   }
@@ -169,46 +160,29 @@ size_t HardwareSerial::print(unsigned char ch, int base)
       printf("%o", ch);
   }
   //TODO Add binary print
-#else
-  (void)ch;
-  (void)base;
-#endif
   return 0;
 }
 
 size_t HardwareSerial::println(unsigned char ch, int base)
 {
-#ifndef RH_SERIAL_DISABLE_PRINT
   print((unsigned int)ch, base);
   printf("\n");
-#else
-  (void)ch;
-  (void)base;
-#endif
   return 0;
 }
 
 size_t HardwareSerial::println(const char* s)
 {
-#ifndef RH_SERIAL_DISABLE_PRINT
     if( s ) {
         printf("%s\n",s);
     }
-#else
-  (void)s;
-#endif
     return 0;
 }
 
 size_t HardwareSerial::print(const char* s)
 {
-#ifndef RH_SERIAL_DISABLE_PRINT
     if( s) {
         printf(s);
     }
-#else
-  (void)s;
-#endif
     return 0;
 }
 
