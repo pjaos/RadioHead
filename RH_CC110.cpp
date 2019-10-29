@@ -337,12 +337,10 @@ void RH_CC110::handleOverFlows(uint8_t status)
     spiCommand(RH_CC110_STROBE_3A_SFRX);
     //Handle RX and TX overflows so we don't get stuck in either state
     if( (status&RH_CC110_STATUS_RXFIFO_OVERFLOW) == RH_CC110_STATUS_RXFIFO_OVERFLOW ) {
-        LOG(LL_INFO, ("%s: ! RX OVERFLOW",__FUNCTION__) );
         spiCommand(RH_CC110_STROBE_3A_SFRX);
         clearRxBuf();
     }
     else if( (status&RH_CC110_STATUS_TXFIFO_UNDERFLOW) == RH_CC110_STATUS_TXFIFO_UNDERFLOW ) {
-        LOG(LL_INFO, ("%s: ! TX OVERFLOW",__FUNCTION__) );
         spiCommand(RH_CC110_STROBE_3B_SFTX);
     }
 }
