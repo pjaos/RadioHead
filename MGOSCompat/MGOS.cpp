@@ -120,6 +120,12 @@ long random(long min, long max)
 
 static void mgos_gpio_int_handler(int pin, void *arg) {
     void (*handler)(void) = (void (*)())arg;
+    //Note that this handler is executed in interrupt context (ISR)
+    //therefore ensure that actions performed here are acceptable for the
+    //platform on which the code will execute.
+    //E.G
+    //Use of the LOG macro to send debug data on the serial port crashes
+    //esp8266 and esp32 code.
     handler();
     (void) pin;
     (void) arg;
@@ -135,7 +141,10 @@ void attachInterrupt(uint8_t pin, void (*handler)(void), int rh_mode)
     } else if( rh_mode == RISING ) {
         mgos_mode = MGOS_GPIO_INT_EDGE_POS;
     }
-    mgos_gpio_set_int_handler((int)pin, mgos_mode, mgos_gpio_int_handler, (void*)handler);
+    mgos_gpio_set_int_handler_isr((int)pin, mgos_mode, mgos_gpio_int_handler, (void*)handler);
+}
+
+void enableInterupt(uint8_t pin) {
     mgos_gpio_enable_int(pin);
 }
 
