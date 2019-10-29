@@ -95,6 +95,7 @@ extern "C" {
   long random(long min, long max);
   void attachInterrupt(uint8_t pin, void (*handler)(void), int rh_mode);
   void mgosYield(void);
+  void enableInterupt(uint8_t pin);
 }
 
 #endif
