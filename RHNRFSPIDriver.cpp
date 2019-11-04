@@ -32,7 +32,7 @@ uint8_t RHNRFSPIDriver::spiCommand(uint8_t command)
 {
     uint8_t status;
     ATOMIC_BLOCK_START;
-#if defined(RH_PLATFORM_MONGOOSE_OS)
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
     status = _spi.transfer(command);
 #else
     _spi.beginTransaction();
@@ -49,7 +49,7 @@ uint8_t RHNRFSPIDriver::spiRead(uint8_t reg)
 {
     uint8_t val;
     ATOMIC_BLOCK_START;
-#if defined(RH_PLATFORM_MONGOOSE_OS)
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
     val = _spi.transfer2B(reg, 0); // Send the address, discard the status, The written value is ignored, reg value is read
 #else
     _spi.beginTransaction();
@@ -67,7 +67,7 @@ uint8_t RHNRFSPIDriver::spiWrite(uint8_t reg, uint8_t val)
 {
     uint8_t status = 0;
     ATOMIC_BLOCK_START;
-#if defined(RH_PLATFORM_MONGOOSE_OS)
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
     status = _spi.transfer2B(reg, val);
 #else
     _spi.beginTransaction();
@@ -91,7 +91,7 @@ uint8_t RHNRFSPIDriver::spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
 {
     uint8_t status = 0;
     ATOMIC_BLOCK_START;
-#if defined(RH_PLATFORM_MONGOOSE_OS)
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
     status = _spi.spiBurstRead(reg, dest, len);
 #else
     _spi.beginTransaction();
@@ -110,7 +110,7 @@ uint8_t RHNRFSPIDriver::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t l
 {
     uint8_t status = 0;
     ATOMIC_BLOCK_START;
-#if defined(RH_PLATFORM_MONGOOSE_OS)
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
     status = _spi.spiBurstWrite(reg, src, len);
 #else
     _spi.beginTransaction();

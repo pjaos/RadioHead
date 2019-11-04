@@ -36,7 +36,7 @@ public:
     /// \return The octet read from SPI while the data octet was sent
     uint8_t transfer(uint8_t data);
 
-#if defined(RH_PLATFORM_MONGOOSE_OS)
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
     /// Transfer (write) 2 bytes on the SPI interface to an NRF device
     /// \param[in] byte0 The first byte to be sent on the SPI interface
     /// \param[in] byte1 The second byte to be sent on the SPI interface

@@ -46,7 +46,7 @@ uint8_t RHHardwareSPI::transfer(uint8_t data)
     return SPI.transfer(data);
 }
 
-#if defined(RH_PLATFORM_MONGOOSE_OS)
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
 uint8_t RHHardwareSPI::transfer2B(uint8_t byte0, uint8_t byte1)
 {
     return SPI.transfer2B(byte0, byte1);
@@ -491,7 +491,9 @@ void RHHardwareSPI::usingInterrupt(uint8_t interrupt)
 #if defined(SPI_HAS_TRANSACTION) && !defined(RH_MISSING_SPIUSINGINTERRUPT)
     SPI.usingInterrupt(interrupt);
 #endif
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
     (void)interrupt;
+#endif
 }
 
 #endif

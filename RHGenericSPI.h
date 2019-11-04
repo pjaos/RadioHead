@@ -89,7 +89,7 @@ public:
     /// \return The octet read from SPI while the data octet was sent
     virtual uint8_t transfer(uint8_t data) = 0;
 
-#if defined(RH_PLATFORM_MONGOOSE_OS)
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
     /// Transfer up to 2 bytes on the SPI interface
     /// \param[in] byte0 The first byte to be sent on the SPI interface
     /// \param[in] byte1 The second byte to be sent on the SPI interface
@@ -166,7 +166,9 @@ public:
     /// Might be overridden in subclass
     /// \param[in] interruptNumber The number of the interrupt
     virtual void usingInterrupt(uint8_t interruptNumber){
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
       (void)interruptNumber;
+#endif
     }
 
 protected:
