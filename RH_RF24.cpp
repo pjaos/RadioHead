@@ -525,7 +525,6 @@ bool RH_RF24::setFrequency(float centre, float afcPullInRange)
 
     // PROP_FREQ_CONTROL_GROUP
     uint8_t freq_control[] = { (uint8_t)n, (uint8_t)m2, (uint8_t)m1, (uint8_t)m0 };
-    (void) afcPullInRange;
     return set_properties(RH_RF24_PROPERTY_FREQ_CONTROL_INTE, freq_control, sizeof(freq_control));
 }
 
