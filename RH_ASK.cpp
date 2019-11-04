@@ -151,6 +151,11 @@ uint8_t RH_ASK::timerCalc(uint16_t speed, uint16_t max_ticks, uint16_t *nticks)
     *nticks = ulticks;
     return prescaler;
 #else
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
+    (void)speed;
+    (void)max_ticks;
+    (void)nticks;
+#endif
     return 0; // not implemented or needed on other platforms
 #endif
 }
@@ -593,7 +598,7 @@ uint8_t RH_ASK::maxMessageLength()
    #define RH_ASK_TIMER_VECTOR TIMER1_COMPA_vect
   #endif
  #endif 
-#elif (RH_ASK_PLATFORM == RH_ASK_PLATFORM_GENERIC_AVR8)
+#elif (RH_PLATFORM == RH_PLATFORM_GENERIC_AVR8)
  #define __COMB(a,b,c) (a##b##c)
  #define _COMB(a,b,c) __COMB(a,b,c)
  #define RH_ASK_TIMER_VECTOR _COMB(TIMER,RH_ASK_TIMER_INDEX,_COMPA_vect)
