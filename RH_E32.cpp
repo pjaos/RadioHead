@@ -4,7 +4,7 @@
 // $Id: RH_E32.cpp,v 1.4 2018/11/15 01:10:48 mikem Exp $
 
 #include <RadioHead.h>
-#ifndef RH_PLATFORM_MONGOOSE_OS
+#if (RH_PLATFORM != RH_PLATFORM_MONGOOSE_OS)
 #ifdef RH_HAVE_SERIAL // No serial
 
 #include <RH_E32.h>
